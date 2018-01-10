@@ -1,5 +1,5 @@
 
-from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLabel, QFrame, QPushButton
+from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLabel, QFrame, QPushButton, QFileDialog
 from PyQt5.QtGui import QPainter, QPixmap, QImage, QPen
 from PyQt5.QtCore import Qt, QPoint
 import sys
@@ -25,6 +25,7 @@ class View(QWidget):
 		self.buffer = QImage(self.viewSize, self.viewSize, QImage.Format_ARGB32)		
 		self.buffer.fill(Qt.white)
 		self.undoBuffer = self.buffer.copy()
+		self.guide = self.buffer.copy()
 		
 		self.setMinimumSize(self.viewSize,self.viewSize)
 		self.setMaximumSize(self.viewSize,self.viewSize)
@@ -32,12 +33,19 @@ class View(QWidget):
 	def paintEvent(self, e):
 		qp = QPainter()
 		qp.begin(self)
-
+		
 		# Draw sketch
+		qp.setOpacity(1.0)
 		qp.drawImage(0,0,self.buffer)
+		
+		# Draw guide
+		guide_rect = self.guide.rect()
+		guide_rect.moveCenter(self.buffer.rect().center())
 		qp.setOpacity(0.1)
+		qp.drawImage(guide_rect,self.guide)
 
 		# Overlay other sketch
+		qp.setOpacity(0.1)
 		qp.drawImage(0,0,self.otherView.buffer)
 
 		# Overlay a grid
@@ -63,9 +71,10 @@ class View(QWidget):
 		self.x = self.prevX = e.x()
 		self.y = self.prevY = e.y()
 
+		self.setFocus()
+
 		if e.button() == Qt.LeftButton:
 			self.undoBuffer = self.buffer.copy()
-
 
 	def mouseReleaseEvent(self, e):
 		if e.button() == Qt.RightButton:
@@ -93,6 +102,29 @@ class View(QWidget):
 
 		self.prevX = self.x
 		self.prevY = self.y
+
+	def keyPressEvent(self, event):
+		print ("Loading image...")
+		if event.key() == Qt.Key_Space:			
+			fileName = QFileDialog.getOpenFileName(self, "Open Image", "", "Image Files (*.png *.jpg *.bmp)")			
+			self.guide.load(fileName[0])
+			self.update()
+		if event.key() == Qt.Key_L:	
+			img = self.buffer.copy()
+			fileName = QFileDialog.getOpenFileName(self, "Open Image", "", "Image Files (*.png *.jpg *.bmp)")		
+			img.load(fileName[0])
+			self.buffer.fill(Qt.white)
+
+			qp = QPainter()
+			qp.begin(self.buffer)
+			irect = img.rect()
+			irect.moveCenter(self.buffer.rect().center())
+			qp.drawImage(irect, img)
+			qp.end()
+			self.update()
+
+		event.accept()
+
 
 class Example(QWidget):
 	
