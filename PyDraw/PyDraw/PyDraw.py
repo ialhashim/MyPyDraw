@@ -1,9 +1,17 @@
 
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLabel, QFrame, QPushButton, QFileDialog
 from PyQt5.QtGui import QPainter, QPixmap, QImage, QPen
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtCore import Qt, QPoint, QTimer, QThread
 import sys
 import random
+import os.path
+import subprocess
+
+dataset = 'Chair'
+datapath = '../../../Data/' + dataset + 'Draw/'
+folder = datapath + 'sketch/n1/'
+hires_folder = datapath + 'hires/n1/'
+ReconstructMeshPath = '../../../02 - Fusion/output/ReconstructMesh/x64/'
 
 class Button(QPushButton):  
 	def __init__(self, title, parent):
@@ -87,7 +95,6 @@ class View(QWidget):
 		self.y = e.y()
 
 		if e.buttons() == Qt.LeftButton:
-			print('x ' + str(self.x))
 			qp = QPainter()
 			qp.begin(self.buffer)
 			if self.isSmoothDrawing:
@@ -99,6 +106,8 @@ class View(QWidget):
 
 			self.update()
 			self.otherView.update()
+			
+			#print('x ' + str(self.x))
 
 		self.prevX = self.x
 		self.prevY = self.y
@@ -114,6 +123,8 @@ class View(QWidget):
 			fileName = QFileDialog.getOpenFileName(self, "Open Image", "", "Image Files (*.png *.jpg *.bmp)")		
 			img.load(fileName[0])
 			self.buffer.fill(Qt.white)
+
+			img = img.scaledToWidth(self.viewSize, Qt.SmoothTransformation)
 
 			qp = QPainter()
 			qp.begin(self.buffer)
@@ -174,14 +185,84 @@ class Example(QWidget):
 		# Save button
 		saveButton = Button('Save...', self)
 		saveButton.clicked.connect(self.saveButtonClicked)   
-		grid.addWidget(saveButton, 3, 1)   
+		grid.addWidget(saveButton, 3, 1)
 
-		self.setMouseTracking(True)		
+		# Network buttons
+		buildGraphButton = Button('Build graph...', self)
+		buildGraphButton.clicked.connect(self.buildGraphClicked)   
+		grid.addWidget(buildGraphButton, 4, 0)
+		self.buildGraphButton = buildGraphButton
+		#
+		computeGraphButton = Button('Compute graph...', self)
+		computeGraphButton.setEnabled(False)
+		computeGraphButton.clicked.connect(self.computeGraphClicked)   
+		grid.addWidget(computeGraphButton, 4, 1)
+		self.computeGraphButton = computeGraphButton
+
+		# Generate mesh button
+		fuseButton = Button('Fuse...', self)
+		#fuseButton.setEnabled(False)
+		fuseButton.clicked.connect(self.fuseClicked)
+		grid.addWidget(fuseButton, 5, 0)
+		self.fuseButton = fuseButton
+
+		self.setMouseTracking(True)	
 		self.setLayout(grid)		
 		self.setGeometry(300, 300, 350, 200)
 		self.setWindowTitle('PyDraw')
 		self.show()
+
+	def fuseClicked(self):
+		print('Fusing results to 3D mesh...')
+		reconExec = ReconstructMeshPath + 'Release/ReconstructMesh.exe'
+		isReconExec = os.path.isfile(reconExec)
+		print (['Recon exec found:', isReconExec])
+		if not isReconExec:
+			return
+
+		stage = '1'
+		views = 'FS'
+		hiresPath = os.path.abspath(datapath + 'hires/n1') + '\\'
+		outputPath = os.path.abspath(datapath + 'output/images/n1') + '\\'
+		reconstructPath = os.path.abspath(datapath + 'output/reconstruct/n1') + '\\'
+		viewPath = os.path.abspath(datapath + 'view/view.off')
+
+		opts = [reconExec, stage, views, hiresPath, outputPath, reconstructPath, viewPath]
+		print(opts)
+
+		#1 FS ./CharacterDraw/hires/m1/ ./CharacterDraw/output/images/m1/ ./CharacterDraw/output/reconstruct/m1/ ./CharacterDraw/view/view.off
+		subprocess.call(opts)
 		
+	def buildGraphClicked(self):	
+		# Load Tensorflow stuff
+		print('Importing library...')
+		import mymain
+		print('Tensorflow loaded.')
+
+		print('Setting flags..')
+		mymain.set_flags(dataset)
+
+		print('Building graph..')
+		self.monnet, self.views, self.num_train_shapes, self.num_valid_shapes, self.num_test_shapes, self.num_encode_shapes = mymain.build_graph()
+		print('Done Building.')
+
+		self.buildGraphButton.setEnabled(False)
+		self.computeGraphButton.setEnabled(True)
+
+	def computeGraphClicked(self):
+		self.view1.buffer.load(folder + 'sketch-F-0.png')
+		self.view2.buffer.load(folder + 'sketch-S-0.png')
+		self.view1.update()
+		self.view2.update()
+		QApplication.processEvents()
+
+		import mymain
+		print('Computing graph..')
+		mymain.compute_graph(self.monnet, self.views, self.num_train_shapes, self.num_valid_shapes, self.num_test_shapes, self.num_encode_shapes)
+		print('Done Computing.')
+
+		self.fuseButton.setEnabled(True)
+
 	def clearButton1Clicked(self):
 		self.view1.buffer.fill(Qt.white)
 		self.view1.update()
@@ -194,8 +275,11 @@ class Example(QWidget):
 
 	def saveButtonClicked(self):		
 		print("Saving Views..")
-		self.view1.buffer.save('view1.png')
-		self.view2.buffer.save('view2.png')
+		expectedWidth = 256
+		self.view1.buffer.scaledToWidth(expectedWidth).save(folder + 'sketch-F-0.png')
+		self.view2.buffer.scaledToWidth(expectedWidth).save(folder +'sketch-S-0.png')
+		self.view1.buffer.save(hires_folder + 'sketch-F-0.png')
+		self.view2.buffer.save(hires_folder + 'sketch-S-0.png')
 		print("Done.")
 
 	def symmetryButtonClicked(self):

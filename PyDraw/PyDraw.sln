@@ -1,18 +1,34 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2020
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PyDraw", "PyDraw\PyDraw.pyproj", "{D0D5921B-6D78-456F-8E08-6325129CABB6}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "MonsterNet", "..\..\01 - Network\build\MonsterNet.pyproj", "{8B516075-F899-436A-895C-DB8132AC5C65}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D0D5921B-6D78-456F-8E08-6325129CABB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0D5921B-6D78-456F-8E08-6325129CABB6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D0D5921B-6D78-456F-8E08-6325129CABB6}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{D0D5921B-6D78-456F-8E08-6325129CABB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0D5921B-6D78-456F-8E08-6325129CABB6}.Release|x64.ActiveCfg = Release|Any CPU
+		{D0D5921B-6D78-456F-8E08-6325129CABB6}.Release|x86.ActiveCfg = Release|Any CPU
+		{8B516075-F899-436A-895C-DB8132AC5C65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B516075-F899-436A-895C-DB8132AC5C65}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8B516075-F899-436A-895C-DB8132AC5C65}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8B516075-F899-436A-895C-DB8132AC5C65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B516075-F899-436A-895C-DB8132AC5C65}.Release|x64.ActiveCfg = Release|Any CPU
+		{8B516075-F899-436A-895C-DB8132AC5C65}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

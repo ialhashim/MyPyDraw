@@ -7,7 +7,7 @@
     <StartupFile>PyDraw.py</StartupFile>
     <SearchPath>
     </SearchPath>
-    <WorkingDirectory>.</WorkingDirectory>
+    <WorkingDirectory>./../../../01 - Network/code/MonsterNet</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>PyDraw</Name>
     <RootNamespace>PyDraw</RootNamespace>
